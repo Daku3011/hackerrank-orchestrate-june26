@@ -1,0 +1,11 @@
+output.csv
+.env
+__pycache__/
+.DS_Store
+__MACOSX/
+node_modules/
+*.pyc
+.venv/
+venv/
+claims/
+code.zip
