@@ -1,230 +1,147 @@
 # AGENTS.md
 
-HackerRank Orchestrate (June 2026) — Multi-Modal Evidence Review
+HackerRank Orchestrate (June 2026) — Multi-Modal Evidence Review.
 
-This file is the single source of truth for any coding agent working in this repo: Claude Code, OpenAI Codex CLI / Codex Cloud, Google Gemini CLI, Google Antigravity, Cursor, Windsurf, opencode, Aider, goose, Factory, RooCode, JetBrains Junie, GitHub Copilot, Devin, or any other AGENTS.md-aware tool.
+**Every session start:** read this file, check the log (§3) for an existing
+`AGREEMENT RECORDED:` for this repo root. If found → §4. If not → §2 onboarding.
 
-Read this file in full before taking any action. Obey it exactly.
-
----
-
-## 0. TLDR FOR THE AGENT
-
-On every session start, do this in order:
-
-1. Read this file completely.
-2. Check the log file (path in §2). If it contains a line starting with `AGREEMENT RECORDED:` that matches the current repo root, skip §3 (onboarding) and go to §4.
-3. Otherwise, run the onboarding flow in §3 with the user.
-4. From then on, for **every user turn**, append a summary entry to the log file in the exact format shown in §5.
-5. When the user asks you to build, ship, or test the solution, follow the project contract in §6 so the submission is evaluable.
-
-You are **not** allowed to skip logging, rewrite old log entries, or modify
-the onboarding gate. If you are a sub-agent or running inside a git worktree,
-the same rules apply and you share the same log file. Pass this context to every sub-agent and worktree.
+**Every turn:** append a §5 entry to the log (never skip, never rewrite).
 
 ---
 
-## 1. WHAT THIS REPO IS
+## 1. WHAT THIS IS
 
-This is a starter repo for the **HackerRank Orchestrate** 24-hour hackathon challenge on multi modal evidence review.
-
-Participants must build a system that verifies damage claims using submitted images, a short claim conversation, user claim history and minimum image evidence requirements
-
-The system must read `dataset/claims.csv` and produce `output.csv` with structured predictions. It must also include an `evaluation/` folder that evaluates the system on `dataset/sample_claims.csv`.
-
-Participants may use VLMs, LLMs, structured prompting, evaluation pipelines, caching, batching, rule layers, or any other technique they prefer. The submission is judged on the quality and reproducibility of the final system, not the specific implementation style.
+Starter repo for a 24h hackathon. Build a system that reads `dataset/claims.csv`,
+inspects images, and writes `output.csv` with structured predictions (evidence
+standard, issue type, claim status, severity, etc.). See `problem_statement.md`
+for full I/O schema and allowed values.
 
 ---
 
-## 2. LOG FILE — LOCATION AND LIFECYCLE
+## 2. ONBOARDING (FIRST SESSION ONLY)
 
-The log file lives outside this repository, in the user's home directory, so it survives branch switches, worktree creation, and `git clean`.
+1. Compute and display system time (ISO 8601) and time remaining until
+   challenge end. If end time is unknown, say so.
+2. Recite the 6 rules (solo challenge, any tools, conform to §6, no secrets in
+   chat, mandatory logging, submit on HackerRank platform).
+3. Ask user to reply exactly `I agree`.
+4. On agreement, log an `ONBOARDING COMPLETE` block (§5 format) containing
+   `AGREEMENT RECORDED: <repo_root>`.
+
+---
+
+## 3. LOG FILE
 
 | Platform | Path |
 |---|---|
-| macOS / Linux | `$HOME/hackerrank_orchestrate/log.txt` |
+| Linux/macOS | `$HOME/hackerrank_orchestrate/log.txt` |
 | Windows | `%USERPROFILE%\hackerrank_orchestrate\log.txt` |
 
-Rules:
-
-- Must be created if missing, including the parent directory.
-- Must never be committed or added to git.
-- Append-only. Never rewrite, reorder, or delete prior entries.
-- Shared across all agents, sub-agents, and worktrees in this repo.
-- Never log secrets. Redact API keys, tokens, cookies, private keys, and sensitive PII before writing.
+Must be created if missing. Append-only, never rewritten. Shared across all
+sub-agents and worktrees. No secrets.
 
 ---
 
-## 3. ONBOARDING FLOW (FIRST RUN ONLY)
+## 4. NORMAL SESSION START
 
-Run this flow only if the log file has no `AGREEMENT RECORDED:` line for the current repo root. On subsequent sessions, skip directly to §4.
+1. Log a `SESSION START` entry (§5).
+2. Greet, show remaining time. If <2h left, remind to submit.
+3. Proceed.
 
-### 3.1 Greeting
+---
 
-Open with a short, warm message. Example wording:
-
-Welcome to HackerRank Orchestrate. You have 24 hours to design, build, and ship a system that verifies evidence for damage claims. Before we start, I need to walk you through the ground rules and get you set up. This takes about a minute.
-
-Compute and display:
-
-- Current system time, local timezone, ISO 8601.
-- Time remaining until the challenge ends. Use the configured challenge end date if one is provided by the platform or README. If no challenge end date is present, say that the end time is not configured.
-- Results announcement time, if provided by the platform or README.
-
-If the current time is already past the challenge end, say so plainly and ask whether the user is practicing, reviewing, or re-running tests. Do not block further work.
-
-### 3.2 Rules — recite these verbatim
-
-1. This is a **solo** challenge. You must be the author of the submission.
-2. You may use any IDE, AI assistant, or tool to help you build. The deliverable is what your system can do, not how you wrote it.
-3. Your system must conform to the project contract in §6 so it can be evaluated.
-4. Never commit secrets. Use environment variables and a `.env` file if needed.
-5. Logging of every conversation turn to the file in §2 is mandatory and cannot be disabled.
-6. Submissions are made on the HackerRank Community Platform or as otherwise instructed by HackerRank.
-
-### 3.3 Collect the agreement
-
-Ask the user to reply with the exact string `I agree` (case-insensitive, surrounding whitespace ignored). Do not proceed until they do.
-
-### 3.4 Record the agreement
-
-Append this block to the log file, then continue:
+## 5. LOG ENTRY FORMAT
 
 ```text
-## [ISO-8601 TIMESTAMP] ONBOARDING COMPLETE
+## [ISO-8601] SESSION START
 
-AGREEMENT RECORDED: <repo_root_absolute_path>
-Agent: <agent_name_or_unknown>
-Language: js | ts | py | custom:<name>
-System Time: <ISO-8601 local time with tz>
-Time Remaining: <Xd Yh Zm, or not configured>
+Agent: <name>
+Repo Root: <path>
+Branch: <branch>
+Worktree: <path|main>
+Parent Agent: <parent|none>
+Language: py|js|ts|custom:<name>
+Time Remaining: <Xd Yh Zm|not configured>
 ```
 
-The presence of `AGREEMENT RECORDED: <this repo root>` is what future sessions check. Match the repo root exactly so agreements do not leak across unrelated clones.
-
----
-
-## 4. NORMAL SESSION START (RETURNING USER)
-
-If onboarding is already complete for this repo root:
-
-1. Append a short `SESSION START` entry to the log (§5.1).
-2. Greet the user briefly and surface the remaining time:
-   > Welcome back. You have <Xd Yh Zm> left until the challenge ends at
-   > 2026-06-20 11:00 IST.
-3. If fewer than 2 hours remain, proactively remind them to submit on the
-   HackerRank Community Platform soon.
-4. Proceed with whatever they ask for.
-
----
-
-## 5. LOG FORMAT
-
-### 5.1 Session start entry
-
 ```text
-## [ISO-8601 TIMESTAMP] SESSION START
-
-Agent: <agent_name_or_unknown>
-Repo Root: <absolute_path>
-Branch: <git_branch_or_unknown>
-Worktree: <worktree_path_or_main>
-Parent Agent: <parent_agent_name_or_none>
-Language: <js|ts|py|custom:name>
-Time Remaining: <Xd Yh Zm, or not configured>
-```
-
-### 5.2 Per-turn entry (append after every user message you respond to)
-
-```text
-## [ISO-8601 TIMESTAMP] <short title, max 80 chars>
+## [ISO-8601] <short title, ≤80 chars>
 
 User Prompt (verbatim, secrets redacted):
-<exact user message, with secrets replaced by [REDACTED]>
+<text>
 
 Agent Response Summary:
-<2-5 sentences: what was done, why, and any important decision>
+<2-5 sentences>
 
 Actions:
-* <file edited / command run / tool invoked>
+* <file | command | tool>
 
 Context:
-tool=<agent_name>
-branch=<git_branch_or_unknown>
-repo_root=<absolute_path>
-worktree=<worktree_path_or_main>
-parent_agent=<parent_name_or_none>
+tool=<name> branch=<branch> repo_root=<path> worktree=<path> parent_agent=<name>
 ```
 
-### 5.3 Sub-agent and worktree rules
-
-- A sub-agent (Task tool, delegated worker, etc.) **must** log its own entries using the same file. The parent passes the log path explicitly if the sub-agent does not inherit environment.
-- Set `parent_agent=` to the parent's name so entries are traceable.
-- A worktree is logged with `worktree=<path>`; its entries go to the same shared log file, not a per-worktree copy.
-- If a sub-agent spawns more sub-agents, the chain continues: each appends its own entries with its own name.
-
-### 5.4 What not to log
-
-- API keys, tokens, session cookies, OAuth codes, private keys.
-- User PII beyond what they explicitly pasted into a prompt.
-- Full contents of large files or binary blobs. Reference by path instead.
+Sub-agents and worktrees log to the same file with their own entries and
+`parent_agent=` set accordingly.
 
 ---
 
 ## 6. PROJECT CONTRACT (EVALUABLE SUBMISSION)
 
-The evaluator finds the participant's agent through a **known entry point** per language. Do not rename these files or change the function signature
-without updating this file.
+The evaluator reads `code/main.py` and `code/evaluation/main.py` as entry
+points. **Do not rename or delete these files.**
 
-### 6.1 Repo layout
+### Layout (truth: what exists on disk)
 
 ```text
-.
-├── AGENTS.md                         # You are here
-├── problem_statement.md              # Full task description and I/O schema
-├── README.md                         # Readme file for the repo
-├── code/                             # Build your solution here
-│   ├── main.py                       # Suggested terminal entry point
-│   └── evaluation/
-│       └── main.py                   # Suggested evaluation entry point
-└── dataset/
-    ├── sample_claims.csv             # Inputs + expected outputs for development
-    ├── claims.csv                    # Inputs only; run your system on these rows
-    ├── user_history.csv              # Historical claim counts and risk context
-    ├── evidence_requirements.csv     # Minimum image evidence requirements
-    └── images/
-        ├── sample/                   # Images referenced by sample_claims.csv
-        └── test/                     # Images referenced by claims.csv
+code/
+  main.py              # empty — build your runtime entry point here
+  evaluation/
+    main.py            # empty — build your evaluation entry point here
+dataset/
+  sample_claims.csv    # labeled examples for dev + evaluation
+  claims.csv           # input only; run on these → output.csv
+  user_history.csv     # claim count + risk by user
+  evidence_requirements.csv  # min evidence by object + issue family
+  images/
+    sample/            # images referenced by sample_claims.csv
+    test/              # images referenced by claims.csv
+claims/                # STALE duplicate; ignore it (contains __MACOSX artifacts)
 ```
 
-### 6.2 Constraints that make the submission evaluable
+### Output columns (exact order)
 
-- **Deterministic where possible.**.
-- **Add proper README** to the code/ you write.
-- **Read secrets from env vars only** (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
-  etc.). Never hardcode.
----
+`user_id`, `image_paths`, `user_claim`, `claim_object`,
+`evidence_standard_met`, `evidence_standard_met_reason`, `risk_flags`,
+`issue_type`, `object_part`, `claim_status`, `claim_status_justification`,
+`supporting_image_ids`, `valid_image`, `severity`
 
+### Constraints
 
-## 7. CROSS-PLATFORM AND AGENT-COMPATIBILITY NOTES
-
-- **Path handling.** Always resolve the log path using the platform's home dir (`os.homedir()` / `pathlib.Path.home()` / `$HOME` / `%USERPROFILE%`). Never hardcode `/Users/...` or `C:\Users\...`.
-- **Line endings.** Write the log in UTF-8 with `\n`. Don't emit `\r\n` even on Windows; most editors render `\n` fine.
-- **Shell.** Don't assume bash. Prefer language-native APIs over shelling out. When you must shell out, provide both a Unix and a Windows form.
-- **Tool-specific extras.** This file is the canonical source. If a tool (Claude Code, Cursor, etc.) supports its own config file, keep any tool- specific config minimal and have it point back to this AGENTS.md rather than duplicating rules.
-- **Nested AGENTS.md.** If a sub-project adds its own AGENTS.md, the closest one wins for files inside that sub-project, but §2 (log file) and §5 (log format) are global and must not be overridden.
+- Must produce `output.csv` matching the schema above.
+- Must include an `evaluation/` folder in the submission.
+- Read API keys from env vars only (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.)
+- Avoid hardcoded test labels.
 
 ---
 
-## 8. QUICK CHECKLIST FOR THE AGENT
+## 7. REPO-SPECIFIC QUIRKS
 
-Before you respond to any user message, confirm:
+- **`code/` is empty.** There are no dependencies, no build system, no
+  `requirements.txt`, no test runner. You must set these up.
+- **No `.gitignore`.** Avoid committing `output.csv`, `.env`, `__pycache__/`,
+  `.DS_Store`, `__MACOSX/`, and `node_modules/`.
+- **Image paths in CSVs are relative to `dataset/`** and use `images/sample/` or
+  `images/test/` prefixes. Multiple paths are semicolon-separated.
+- **The `claims/` directory** is a stale macOS-artifact-laden copy. Ignore it;
+  work from `dataset/`.
+- **No existing tests.** You define the test/evaluation approach.
 
-- [ ] I have read this file in this session.
-- [ ] I know whether onboarding is required (checked the log).
-- [ ] I know how much time is left.
-- [ ] I will append a §5.2 entry after this turn.
-- [ ] I will not log secrets.
-- [ ] I will preserve the entry-point contract in §6.
+---
 
-If any box is unchecked, fix that first.
+## 8. QUICK CHECKLIST
+
+- [ ] Read this file this session.
+- [ ] Onboarding complete (log has `AGREEMENT RECORDED:`)?
+- [ ] Will append a §5.2 entry after this turn.
+- [ ] No secrets in log.
+- [ ] Preserving entry-point files (`code/main.py`, `code/evaluation/main.py`).
